@@ -328,6 +328,72 @@ module SortHelper
     end
   end
 
+  def new_sort_header_tag(column, allowed_params: nil, **options)
+    caption = get_caption(column, options)
+
+    default_order = options.delete(:default_order) || "asc"
+    lang = options.delete(:lang) || nil
+    param = options.delete(:param) || :sort
+    data = options.delete(:data) || {}
+
+    options[:title] = sort_header_title(column, caption, options)
+
+    within_sort_header_tag_hierarchy(options, sort_class(column)) do
+      action_menu(column, caption, allowed_params:, param:, lang:, title: options[:title], data:)
+    end
+  end
+
+  def sort_by_options(column, order, allowed_params: nil, **html_options)
+    sort_by = html_options.delete(:param)
+
+    sort_param = @sort_criteria.add(column.to_s, order).to_param(sort_by)
+    sort_key = sort_by == :json ? :sortBy : :sort
+
+    sort_options = { sort_key => sort_param }
+    allowed_params ||= %w[filters per_page expand columns]
+
+    safe_query_params(allowed_params).merge(sort_options)
+  end
+
+  def action_menu(column, caption, allowed_params: nil, **html_options)
+    caption ||= column.to_s.humanize
+
+    asc_sort_link = projects_path(sort_by_options(column, "asc", allowed_params:, **html_options))
+    desc_sort_link = projects_path(sort_by_options(column, "desc", allowed_params:, **html_options))
+
+    html_options.delete(:param)
+
+    render Primer::Alpha::ActionMenu.new(menu_id: "menu-#{column.to_s}") do |menu|
+      menu.with_show_button(scheme: :link) do |button|
+        "#{h(caption)}"
+      end
+      menu.with_item(label: "Sort descending", href: desc_sort_link, content_arguments: html_options.merge(rel: :nofollow)) {
+        _1.with_leading_visual_icon(icon: "sort-desc")
+      }
+      menu.with_item(label: "Sort ascending", href: asc_sort_link, content_arguments: html_options.merge(rel: :nofollow)) {
+        _1.with_leading_visual_icon(icon: "sort-asc")
+      }
+      menu.with_divider
+      menu.with_item(label: "Filter by") {
+        _1.with_leading_visual_icon(icon: "filter")
+      }
+      menu.with_divider
+      menu.with_item(label: "Move column left"){
+        _1.with_leading_visual_icon(icon: "op-columns-left")
+      }
+      menu.with_item(label: "Move column right"){
+        _1.with_leading_visual_icon(icon: "op-columns-right")
+      }
+      menu.with_item(label: "Add column"){
+        _1.with_leading_visual_icon(icon: "columns")
+      }
+      menu.with_divider
+      menu.with_item(label: "Remove column", scheme: :danger){
+        _1.with_leading_visual_icon(icon: "trash")
+      }
+    end
+  end
+
   def sort_class(column)
     order = order_string(column)
 
