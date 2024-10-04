@@ -99,7 +99,7 @@ module CustomField::OrderStatements
   def join_for_order_by_int_sql
     <<-SQL.squish
       LEFT OUTER JOIN (
-        SELECT DISTINCT ON (cv.customized_id) cv.customized_id, cv.value::decimal(60) value
+        SELECT DISTINCT ON (cv.customized_id) cv.customized_id, cv.value::decimal(60) "value"
           FROM #{CustomValue.quoted_table_name} cv
           WHERE cv.customized_type = #{CustomValue.connection.quote(self.class.customized_class.name)}
             AND cv.custom_field_id = #{id}
@@ -114,7 +114,7 @@ module CustomField::OrderStatements
   def join_for_order_by_float_sql
     <<-SQL.squish
       LEFT OUTER JOIN (
-        SELECT DISTINCT ON (cv.customized_id) cv.customized_id, cv.value::double precision value
+        SELECT DISTINCT ON (cv.customized_id) cv.customized_id, cv.value::double precision "value"
           FROM #{CustomValue.quoted_table_name} cv
           WHERE cv.customized_type = #{CustomValue.connection.quote(self.class.customized_class.name)}
             AND cv.custom_field_id = #{id}
@@ -130,7 +130,7 @@ module CustomField::OrderStatements
     if multi_value?
       <<-SQL.squish
         LEFT OUTER JOIN (
-          SELECT cv.customized_id, array_agg(co.position ORDER BY co.position) value
+          SELECT cv.customized_id, array_agg(co.position ORDER BY co.position) "value"
             FROM #{CustomValue.quoted_table_name} cv
             INNER JOIN #{CustomOption.quoted_table_name} co
               ON co.id = cv.value::bigint
@@ -145,7 +145,7 @@ module CustomField::OrderStatements
     else
       <<-SQL.squish
         LEFT OUTER JOIN (
-          SELECT DISTINCT ON (cv.customized_id) cv.customized_id, co.position value
+          SELECT DISTINCT ON (cv.customized_id) cv.customized_id, co.position "value"
             FROM #{CustomValue.quoted_table_name} cv
             INNER JOIN #{CustomOption.quoted_table_name} co
               ON co.id = cv.value::bigint
@@ -166,7 +166,7 @@ module CustomField::OrderStatements
     if multi_value?
       <<-SQL.squish
         LEFT OUTER JOIN (
-          SELECT cv.customized_id, ARRAY_AGG(#{columns_array} ORDER BY #{columns_array}) value
+          SELECT cv.customized_id, ARRAY_AGG(#{columns_array} ORDER BY #{columns_array}) "value"
             FROM #{CustomValue.quoted_table_name} cv
             INNER JOIN #{User.quoted_table_name} users
               ON users.id = cv.value::bigint
@@ -181,7 +181,7 @@ module CustomField::OrderStatements
     else
       <<-SQL.squish
         LEFT OUTER JOIN (
-          SELECT DISTINCT ON (cv.customized_id) cv.customized_id, #{columns_array} value
+          SELECT DISTINCT ON (cv.customized_id) cv.customized_id, #{columns_array} "value"
             FROM #{CustomValue.quoted_table_name} cv
             INNER JOIN #{User.quoted_table_name} users
               ON users.id = cv.value::bigint
@@ -200,7 +200,7 @@ module CustomField::OrderStatements
     if multi_value?
       <<-SQL.squish
         LEFT OUTER JOIN (
-          SELECT cv.customized_id, array_agg(versions.name ORDER BY versions.name) value
+          SELECT cv.customized_id, array_agg(versions.name ORDER BY versions.name) "value"
             FROM #{CustomValue.quoted_table_name} cv
             INNER JOIN #{Version.quoted_table_name} versions
               ON versions.id = cv.value::bigint
@@ -215,7 +215,7 @@ module CustomField::OrderStatements
     else
       <<-SQL.squish
         LEFT OUTER JOIN (
-          SELECT DISTINCT ON (cv.customized_id) cv.customized_id, versions.name value
+          SELECT DISTINCT ON (cv.customized_id) cv.customized_id, versions.name "value"
             FROM #{CustomValue.quoted_table_name} cv
             INNER JOIN #{Version.quoted_table_name} versions
               ON versions.id = cv.value::bigint
