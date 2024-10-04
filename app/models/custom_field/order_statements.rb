@@ -45,6 +45,8 @@ module CustomField::OrderStatements
       order_by_user_sql
     when "version"
       order_by_version_sql
+    else
+      false
     end
   end
 
