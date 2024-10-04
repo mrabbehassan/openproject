@@ -49,7 +49,7 @@ module ProjectsHelper
 
     @sort_criteria.criteria.reject! { |a, _| a == "lft" }
 
-    new_sort_header_tag(column, **, allowed_params: projects_query_param_names_for_sort)
+    sort_header_with_action_menu(column, **, allowed_params: projects_query_param_names_for_sort)
   ensure
     @sort_criteria.criteria = former_criteria
   end

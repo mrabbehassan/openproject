@@ -328,10 +328,9 @@ module SortHelper
     end
   end
 
-  def new_sort_header_tag(column, allowed_params: nil, **options)
+  def sort_header_with_action_menu(column, allowed_params: nil, **options)
     caption = get_caption(column, options)
 
-    default_order = options.delete(:default_order) || "asc"
     lang = options.delete(:lang) || nil
     param = options.delete(:param) || :sort
     data = options.delete(:data) || {}
