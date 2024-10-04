@@ -338,7 +338,12 @@ module SortHelper
     options[:title] = sort_header_title(column, caption, options)
 
     within_sort_header_tag_hierarchy(options, sort_class(column)) do
-      action_menu(column, caption, allowed_params:, param:, lang:, title: options[:title], data:)
+      # FIXME: always render the action menu
+      if column.to_s == "name" || column.to_s == "project_status"
+        action_menu(column, caption, allowed_params:, param:, lang:, title: options[:title], data:)
+      else
+        sort_link(column, caption, "asc", allowed_params:, param:, lang:, title: options[:title], data:)
+      end
     end
   end
 
@@ -362,14 +367,16 @@ module SortHelper
 
     html_options.delete(:param)
 
+    content_arguments = html_options.merge(rel: :nofollow)
+
     render Primer::Alpha::ActionMenu.new(menu_id: "menu-#{column.to_s}") do |menu|
       menu.with_show_button(scheme: :link) do |button|
         "#{h(caption)}"
       end
-      menu.with_item(label: "Sort descending", href: desc_sort_link, content_arguments: html_options.merge(rel: :nofollow)) {
+      menu.with_item(label: "Sort descending", href: desc_sort_link, content_arguments:) {
         _1.with_leading_visual_icon(icon: "sort-desc")
       }
-      menu.with_item(label: "Sort ascending", href: asc_sort_link, content_arguments: html_options.merge(rel: :nofollow)) {
+      menu.with_item(label: "Sort ascending", href: asc_sort_link, content_arguments:) {
         _1.with_leading_visual_icon(icon: "sort-asc")
       }
       menu.with_divider
