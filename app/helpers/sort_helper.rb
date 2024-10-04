@@ -362,8 +362,8 @@ module SortHelper
   def action_menu(column, caption, allowed_params: nil, **html_options)
     caption ||= column.to_s.humanize
 
-    asc_sort_link = projects_path(sort_by_options(column, "asc", allowed_params:, **html_options))
     desc_sort_link = projects_path(sort_by_options(column, "desc", allowed_params:, **html_options))
+    asc_sort_link = projects_path(sort_by_options(column, "asc", allowed_params:, **html_options))
 
     html_options.delete(:param)
 
@@ -376,11 +376,13 @@ module SortHelper
       menu.with_item(label: "Sort descending", href: desc_sort_link, content_arguments:) {
         _1.with_leading_visual_icon(icon: "sort-desc")
       }
-      menu.with_item(label: "Sort ascending", href: asc_sort_link, content_arguments:) {
+      # FIXME: the title must be unique per link! Else, this link will also be #desc
+      # move the title creation to another method.
+      menu.with_item(label: "Sort ascending", href: asc_sort_link, content_arguments: content_arguments.merge(title: "Sort ascending")) {
         _1.with_leading_visual_icon(icon: "sort-asc")
       }
       menu.with_divider
-      menu.with_item(label: "Filter by") {
+      menu.with_item(label: "Filter by", href: "#") {
         _1.with_leading_visual_icon(icon: "filter")
       }
       menu.with_divider
@@ -390,7 +392,10 @@ module SortHelper
       menu.with_item(label: "Move column right"){
         _1.with_leading_visual_icon(icon: "op-columns-right")
       }
-      menu.with_item(label: "Add column"){
+      # TODO: title?
+      menu.with_item(label: "Add column",
+                     href: configure_view_modal_project_queries_path(projects_query_params),
+                     content_arguments: { data: { controller: "async-dialog" } }) {
         _1.with_leading_visual_icon(icon: "columns")
       }
       menu.with_divider
