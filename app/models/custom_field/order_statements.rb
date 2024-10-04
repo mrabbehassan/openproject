@@ -52,7 +52,7 @@ module CustomField::OrderStatements
 
   ##
   # Returns the null handling for the given direction
-  def null_handling(asc)
+  def order_null_handling(asc)
     return unless %w[int float].include?(field_format)
 
     null_direction = asc ? "FIRST" : "LAST"
