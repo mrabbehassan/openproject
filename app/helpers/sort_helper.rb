@@ -348,13 +348,17 @@ module SortHelper
     end
   end
 
+  def sort_key(key)
+    key == :json ? :sortBy : :sort
+  end
+
   def sort_by_options(column, order, default_order, allowed_params: nil, **html_options)
     order ||= order_string(column, inverted: true) || default_order
 
     sort_by = html_options.delete(:param)
 
     sort_param = @sort_criteria.add(column.to_s, order).to_param(sort_by)
-    sort_key = sort_by == :json ? :sortBy : :sort
+    sort_key = sort_key(sort_by)
 
     sort_options = { sort_key => sort_param }
     allowed_params ||= %w[filters per_page expand columns]
@@ -369,6 +373,13 @@ module SortHelper
                             .map(&:attribute)
   end
 
+  def build_columns_link(columns, allowed_params: nil, **html_options)
+    sort_by = html_options.delete(:param)
+    sort_key = sort_key(sort_by)
+
+    allowed_params ||= %w[filters per_page expand columns]
+    projects_path(safe_query_params(allowed_params).merge(columns:, sort_key => params[sort_key]))
+  end
 
   def action_menu(column, caption, default_order, allowed_params: nil, **html_options)
     caption ||= column.to_s.humanize
@@ -379,7 +390,7 @@ module SortHelper
     selected_columns = selected_columns_for_action_menu
     excluded_column = selected_columns.reject {_1 == column}.join(" ")
     # TODO: make less cumbersome
-    rm_column_link = projects_path(safe_query_params(allowed_params).merge(columns: excluded_column, sortBy: params[:sortBy]))
+    rm_column_link = build_columns_link(excluded_column, allowed_params:, **html_options)
 
     html_options.delete(:param)
 
