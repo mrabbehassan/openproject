@@ -331,6 +331,7 @@ module SortHelper
   def sort_header_with_action_menu(column, allowed_params: nil, **options)
     caption = get_caption(column, options)
 
+    default_order = options.delete(:default_order) || "asc"
     lang = options.delete(:lang) || nil
     param = options.delete(:param) || :sort
     data = options.delete(:data) || {}
@@ -340,14 +341,16 @@ module SortHelper
     within_sort_header_tag_hierarchy(options, sort_class(column)) do
       # FIXME: always render the action menu
       if column.to_s == "name" || column.to_s == "project_status"
-        action_menu(column, caption, allowed_params:, param:, lang:, title: options[:title], data:)
+        action_menu(column, caption, default_order, allowed_params:, param:, lang:, title: options[:title], data:)
       else
-        sort_link(column, caption, "asc", allowed_params:, param:, lang:, title: options[:title], data:)
+        sort_link(column, caption, default_order, allowed_params:, param:, lang:, title: options[:title], data:)
       end
     end
   end
 
-  def sort_by_options(column, order, allowed_params: nil, **html_options)
+  def sort_by_options(column, order, default_order, allowed_params: nil, **html_options)
+    order ||= order_string(column, inverted: true) || default_order
+
     sort_by = html_options.delete(:param)
 
     sort_param = @sort_criteria.add(column.to_s, order).to_param(sort_by)
@@ -359,11 +362,24 @@ module SortHelper
     safe_query_params(allowed_params).merge(sort_options)
   end
 
-  def action_menu(column, caption, allowed_params: nil, **html_options)
+  # FIXME: copied from ConfigureViewModalComponent
+  def selected_columns_for_action_menu
+    @selected_columns ||= @query
+                            .selects
+                            .map(&:attribute)
+  end
+
+
+  def action_menu(column, caption, default_order, allowed_params: nil, **html_options)
     caption ||= column.to_s.humanize
 
-    desc_sort_link = projects_path(sort_by_options(column, "desc", allowed_params:, **html_options))
-    asc_sort_link = projects_path(sort_by_options(column, "asc", allowed_params:, **html_options))
+    desc_sort_link = projects_path(sort_by_options(column, "desc", default_order, allowed_params:, **html_options))
+    asc_sort_link = projects_path(sort_by_options(column, "asc", default_order, allowed_params:, **html_options))
+
+    selected_columns = selected_columns_for_action_menu
+    excluded_column = selected_columns.reject {_1 == column}.join(" ")
+    # TODO: make less cumbersome
+    rm_column_link = projects_path(safe_query_params(allowed_params).merge(columns: excluded_column, sortBy: params[:sortBy]))
 
     html_options.delete(:param)
 
@@ -382,10 +398,12 @@ module SortHelper
         _1.with_leading_visual_icon(icon: "sort-asc")
       }
       menu.with_divider
+      # TODO: connect to filter Stimulus controller?
       menu.with_item(label: "Filter by", href: "#") {
         _1.with_leading_visual_icon(icon: "filter")
       }
       menu.with_divider
+      # TODO: inspect network tab to see what is going on
       menu.with_item(label: "Move column left"){
         _1.with_leading_visual_icon(icon: "op-columns-left")
       }
@@ -399,7 +417,7 @@ module SortHelper
         _1.with_leading_visual_icon(icon: "columns")
       }
       menu.with_divider
-      menu.with_item(label: "Remove column", scheme: :danger){
+      menu.with_item(label: "Remove column", scheme: :danger, href: rm_column_link, content_arguments: content_arguments.merge(title: "Remove column")){
         _1.with_leading_visual_icon(icon: "trash")
       }
     end
