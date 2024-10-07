@@ -381,6 +381,25 @@ module SortHelper
     projects_path(safe_query_params(allowed_params).merge(columns:, sort_key => params[sort_key]))
   end
 
+  def shift_element(arr, str, direction=:left)
+    arr = arr.dup
+    index = arr.index(str)
+    return arr unless index
+
+    case direction
+    when :left
+      if index > 0
+        arr[index], arr[index - 1] = arr[index - 1], arr[index]
+      end
+    when :right
+      if index < arr.size - 1
+        arr[index], arr[index + 1] = arr[index + 1], arr[index]
+      end
+    end
+
+    arr
+  end
+
   def action_menu(column, caption, default_order, allowed_params: nil, **html_options)
     caption ||= column.to_s.humanize
 
@@ -389,7 +408,12 @@ module SortHelper
 
     selected_columns = selected_columns_for_action_menu
     excluded_column = selected_columns.reject {_1 == column}.join(" ")
-    # TODO: make less cumbersome
+    left_shift = shift_element(selected_columns, column).join(" ")
+    right_shift = shift_element(selected_columns, column, :right).join(" ")
+
+    # filter
+    shift_left_link = build_columns_link(left_shift, allowed_params:, **html_options)
+    shift_right_link = build_columns_link(right_shift, allowed_params:, **html_options)
     rm_column_link = build_columns_link(excluded_column, allowed_params:, **html_options)
 
     html_options.delete(:param)
@@ -397,40 +421,40 @@ module SortHelper
     content_arguments = html_options.merge(rel: :nofollow)
 
     render Primer::Alpha::ActionMenu.new(menu_id: "menu-#{column.to_s}") do |menu|
-      menu.with_show_button(scheme: :link) do |button|
+      menu.with_show_button(scheme: :link) do |_button|
         "#{h(caption)}"
       end
-      menu.with_item(label: "Sort descending", href: desc_sort_link, content_arguments:) {
+      menu.with_item(label: "Sort descending", href: desc_sort_link, content_arguments:) do
         _1.with_leading_visual_icon(icon: "sort-desc")
-      }
+      end
       # FIXME: the title must be unique per link! Else, this link will also be #desc
       # move the title creation to another method.
-      menu.with_item(label: "Sort ascending", href: asc_sort_link, content_arguments: content_arguments.merge(title: "Sort ascending")) {
+      menu.with_item(label: "Sort ascending", href: asc_sort_link, content_arguments: content_arguments.merge(title: "Sort ascending")) do
         _1.with_leading_visual_icon(icon: "sort-asc")
-      }
+      end
       menu.with_divider
       # TODO: connect to filter Stimulus controller?
-      menu.with_item(label: "Filter by", href: "#") {
+      menu.with_item(label: "Filter by", href: "#") do
         _1.with_leading_visual_icon(icon: "filter")
-      }
+      end
       menu.with_divider
       # TODO: inspect network tab to see what is going on
-      menu.with_item(label: "Move column left"){
+      menu.with_item(label: "Move column left", href: shift_left_link) do
         _1.with_leading_visual_icon(icon: "op-columns-left")
-      }
-      menu.with_item(label: "Move column right"){
+      end
+      menu.with_item(label: "Move column right", href: shift_right_link) do
         _1.with_leading_visual_icon(icon: "op-columns-right")
-      }
+      end
       # TODO: title?
       menu.with_item(label: "Add column",
                      href: configure_view_modal_project_queries_path(projects_query_params),
-                     content_arguments: { data: { controller: "async-dialog" } }) {
+                     content_arguments: { data: { controller: "async-dialog" } }) do
         _1.with_leading_visual_icon(icon: "columns")
-      }
+      end
       menu.with_divider
-      menu.with_item(label: "Remove column", scheme: :danger, href: rm_column_link, content_arguments: content_arguments.merge(title: "Remove column")){
+      menu.with_item(label: "Remove column", scheme: :danger, href: rm_column_link, content_arguments: content_arguments.merge(title: "Remove column")) do
         _1.with_leading_visual_icon(icon: "trash")
-      }
+      end
     end
   end
 
