@@ -33,14 +33,10 @@ class Queries::WorkPackages::Selects::CustomFieldSelect < Queries::WorkPackages:
     @cf = custom_field
 
     @name = custom_field.column_name.to_sym
-    @sortable = custom_field.order_statement || false
-    @sortable_join = custom_field.order_join_statement || false
-    @groupable = groupable_custom_field?(custom_field) ? custom_field.group_by_statement || false : false
+    @sortable = custom_field.order_statement
+    @sortable_join = custom_field.order_join_statement
+    @groupable = custom_field.group_by_statement
     @summable = summable_statement
-  end
-
-  def groupable_custom_field?(custom_field)
-    %w(list date bool int).include?(custom_field.field_format)
   end
 
   def caption

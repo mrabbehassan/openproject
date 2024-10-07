@@ -34,8 +34,6 @@ module CustomField::OrderStatements
     case field_format
     when "string", "date", "bool", "link", "int", "float", "list", "user", "version"
       "cf_order_#{id}.value"
-    else
-      false
     end
   end
 
@@ -69,6 +67,8 @@ module CustomField::OrderStatements
   # which differ for multi-value select fields,
   # because in this case we do want the primary CV values
   def group_by_statement
+    return unless field_format.in?(%w[list date bool int])
+
     return order_statement unless field_format == "list"
 
     if multi_value?
