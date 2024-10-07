@@ -378,7 +378,7 @@ module SortHelper
     sort_key = sort_key(sort_by)
 
     allowed_params ||= %w[filters per_page expand columns]
-    projects_path(safe_query_params(allowed_params).merge(columns:, sort_key => params[sort_key]))
+    projects_path(safe_query_params(allowed_params).merge(columns: columns.join(" "), sort_key => params[sort_key]))
   end
 
   def shift_element(arr, str, direction=:left)
@@ -407,9 +407,9 @@ module SortHelper
     asc_sort_link = projects_path(sort_by_options(column, "asc", default_order, allowed_params:, **html_options))
 
     selected_columns = selected_columns_for_action_menu
-    excluded_column = selected_columns.reject {_1 == column}.join(" ")
-    left_shift = shift_element(selected_columns, column).join(" ")
-    right_shift = shift_element(selected_columns, column, :right).join(" ")
+    excluded_column = selected_columns.reject {_1 == column}
+    left_shift = shift_element(selected_columns, column)
+    right_shift = shift_element(selected_columns, column, :right)
 
     # filter
     shift_left_link = build_columns_link(left_shift, allowed_params:, **html_options)
